@@ -1,3 +1,9 @@
+# Verificar permisos de usuario
+if [[ $(id -u) -ne 0 && $(sudo -n true; echo $?) -ne 0 ]]; then
+  echo "Este script debe ser ejecutado como root o con permisos de sudo."
+  exit 1
+fi
+
 # Establecer lugar donde se guardara el archivo final
 CLOUDFLARE_FILE_PATH=${1:-/etc/nginx/cloudflare}
 
