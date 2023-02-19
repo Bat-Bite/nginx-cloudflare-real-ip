@@ -1,7 +1,21 @@
-# Verificar permisos de usuario
-if [[ $(id -u) -ne 0 && $(sudo -n true; echo $?) -ne 0 ]]; then
-  echo "Este script debe ser ejecutado como root o con permisos de sudo."
+# Verificar que el usuario tenga permisos de root o de sudo
+if [[ $EUID -ne 0 ]]; then
+  echo "Este script debe ser ejecutado como root o con permisos de sudo" 1>&2
   exit 1
+fi
+
+# Verificar si jq está instalado
+if ! which jq >/dev/null 2>&1; then
+  echo "jq no está instalado. ¿Desea instalarlo automáticamente? (y/n)"
+  read -r install_jq
+  if [[ $install_jq =~ ^[Yy]$ ]]; then
+    # Instalar jq automáticamente
+    sudo apt-get update && sudo apt-get install -y jq
+  else
+    # Pedir al usuario que instale jq manualmente
+    echo "Por favor, instale jq manualmente para continuar."
+    exit 1
+  fi
 fi
 
 # Establecer lugar donde se guardara el archivo final
