@@ -33,14 +33,19 @@ CLOUDFLARE_IPV6_RANGES=$(curl -s -X GET "https://api.cloudflare.com/client/v4/ip
   -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
   | jq -r '.result.ipv6_cidrs[]')
 
-# Agregar las direcciones IP a la configuración de Nginx
-echo "# - IPv4" >> $CLOUDFLARE_FILE_PATH;
-for i in $CLOUDFLARE_IPV4_RANGES; do
-  echo "set_real_ip_from $i;" >> $CLOUDFLARE_FILE_PATH;
-done
+# Función para agregar las direcciones IP a la configuración de Nginx
+add_ip_to_nginx_config() {
+  local version=$1
+  local ip_ranges=("${@:2}")
 
-echo "" >> $CLOUDFLARE_FILE_PATH;
-echo "# - IPv6" >> $CLOUDFLARE_FILE_PATH;
-for i in $CLOUDFLARE_IPV6_RANGES; do
-  echo "set_real_ip_from $i;" >> $CLOUDFLARE_FILE_PATH;
-done
+  echo "# - IPv${version}" >> "$CLOUDFLARE_FILE_PATH"
+  for ip in "${ip_ranges[@]}"; do
+    echo "set_real_ip_from $ip;" >> "$CLOUDFLARE_FILE_PATH"
+  done
+}
+
+# Agregar las direcciones IPv4 a la configuración de Nginx
+add_ip_to_nginx_config 4 "${CLOUDFLARE_IPV4_RANGES[@]}"
+
+# Agregar las direcciones IPv6 a la configuración de Nginx
+add_ip_to_nginx_config 6 "${CLOUDFLARE_IPV6_RANGES[@]}"
